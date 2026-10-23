@@ -139,7 +139,11 @@ def parse_args_openvino(parser: "ArgumentParser"):
         "--group-size",
         type=int,
         default=None,
-        help=("The group size to use for quantization. Recommended value is 128 and -1 uses per-column quantization."),
+        help=(
+            "The group size to use for quantization. Recommended value is 128 and -1 uses per-column quantization. "
+            "For --weight-format int8 the default is -1; e.g. --weight-format int8 --sym --group-size 32 gives the "
+            "layout of llama.cpp's Q8_0 (requires NNCF with group-wise INT8 support)."
+        ),
     )
     optional_group.add_argument(
         "--group-size-fallback",
@@ -530,7 +534,7 @@ def prepare_wc_config(args, default_configs):
         "bits": weight_format_to_bits.get(args.weight_format, 4),
         "ratio": 1.0 if is_int8 else (args.ratio or default_configs["ratio"]),
         "sym": True if is_int2_or_int3 else (args.sym or False),
-        "group_size": -1 if is_int8 else args.group_size,
+        "group_size": -1 if is_int8 and args.group_size is None else args.group_size,
         "all_layers": None if is_int8 else args.all_layers,
         "dataset": args.dataset,
         "num_samples": args.num_samples,
